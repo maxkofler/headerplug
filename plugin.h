@@ -26,15 +26,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 class PluginException {
 
 public:
-	PluginException(const std::string& msg) : _msg(msg) {
-	}
+    PluginException(const std::string& msg) : _msg(msg) {
+    }
 
-	const char *what(){
-		return _msg.c_str();
-	}
+    const char *what(){
+        return _msg.c_str();
+    }
 
 private:
-	std::string			_msg;
+    std::string         _msg;
 
 };
 
@@ -44,67 +44,67 @@ template <class T>
 class Plugin{
 
 public:
-	static Plugin<T> load (std::string path, std::string createFun = "create_plugin", std::string deleteFun = "delete_plugin"){
-		void* handle = dlopen(path.c_str(), RTLD_LAZY);
-		if (handle == nullptr)
-			throw PluginException("Failed to load library at " + path + ": " + dlerror());
+    static Plugin<T> load (std::string path, std::string createFun = "create_plugin", std::string deleteFun = "delete_plugin"){
+        void* handle = dlopen(path.c_str(), RTLD_LAZY);
+        if (handle == nullptr)
+            throw PluginException("Failed to load library at " + path + ": " + dlerror());
 
-		T* (*create)(void);
-		void (*del)(T*);
+        T* (*create)(void);
+        void (*del)(T*);
 
-		create = (T*(*)(void)) dlsym(handle, createFun.c_str());
-		if (create == nullptr){
-			dlclose(handle);
-			throw PluginException("Failed to find function '" + createFun + "' in library " + path);
-		}
+        create = (T*(*)(void)) dlsym(handle, createFun.c_str());
+        if (create == nullptr){
+            dlclose(handle);
+            throw PluginException("Failed to find function '" + createFun + "' in library " + path);
+        }
 
-		del = (void(*)(T*)) dlsym(handle, deleteFun.c_str());
-		if (del == nullptr){
-			dlclose(handle);
-			throw PluginException("Failed to find function '" + deleteFun + "' in library " + path);
-		}
+        del = (void(*)(T*)) dlsym(handle, deleteFun.c_str());
+        if (del == nullptr){
+            dlclose(handle);
+            throw PluginException("Failed to find function '" + deleteFun + "' in library " + path);
+        }
 
-		return Plugin<T>(handle, create, del);
-	}
+        return Plugin<T>(handle, create, del);
+    }
 
-	~Plugin(){
-		if (_dlHandle != nullptr)
-			dlclose(_dlHandle);
-	}
+    ~Plugin(){
+        if (_dlHandle != nullptr)
+            dlclose(_dlHandle);
+    }
 
-	PluginInstance<T>	instanciate(){
-		return PluginInstance<T>(_plugin_create(), _plugin_delete);
-	}
+    PluginInstance<T> instanciate(){
+        return PluginInstance<T>(_plugin_create(), _plugin_delete);
+    }
 
 private:
-	Plugin(){}
-	Plugin(void* dlHandle, T*(plugin_create)(void), void(plugin_delete)(T*)) : _dlHandle(dlHandle), _plugin_create(plugin_create), _plugin_delete(plugin_delete) {}
+    Plugin(){}
+    Plugin(void* dlHandle, T*(plugin_create)(void), void(plugin_delete)(T*)) : _dlHandle(dlHandle), _plugin_create(plugin_create), _plugin_delete(plugin_delete) {}
 
-	void*				_dlHandle;
+    void*               _dlHandle;
 
-	T*					(*_plugin_create)(void);
-	void				(*_plugin_delete)(T* p);
+    T*                  (*_plugin_create)(void);
+    void                (*_plugin_delete)(T* p);
 };
 
 template <class T>
 class PluginInstance{
 
 public:
-	~PluginInstance()	{_plugin_delete(_instance);}
-	T*					get() { return _instance; }
+    ~PluginInstance()   {_plugin_delete(_instance);}
+    T*                  get() { return _instance; }
 
-	T* operator -> () const {
-		return _instance;
-	}
+    T* operator -> () const {
+        return _instance;
+    }
 
-	template <class U> friend class Plugin;
+    template <class U> friend class Plugin;
 
 private:
-	PluginInstance(){}
-	PluginInstance(T* instance, void (*plugin_delete)(T* p)) : _instance(instance), _plugin_delete(plugin_delete) {}
+    PluginInstance(){}
+    PluginInstance(T* instance, void (*plugin_delete)(T* p)) : _instance(instance), _plugin_delete(plugin_delete) {}
 
-	void				(*_plugin_delete)(T* p);
-	T*					_instance;
+    void                (*_plugin_delete)(T* p);
+    T*                  _instance;
 };
 
 #endif
