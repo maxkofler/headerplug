@@ -22,6 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define __PLUGIN_H__
 
 #include <dlfcn.h>
+#include <string>
 
 class PluginException {
 
@@ -72,7 +73,7 @@ public:
             dlclose(_dlHandle);
     }
 
-    PluginInstance<T> instanciate(){
+    PluginInstance<T> instanciate() const{
         return PluginInstance<T>(_plugin_create(), _plugin_delete);
     }
 
@@ -91,7 +92,7 @@ class PluginInstance{
 
 public:
     ~PluginInstance()   {_plugin_delete(_instance);}
-    T*                  get() { return _instance; }
+    T*                  get() const { return _instance; }
 
     T* operator -> () const {
         return _instance;
