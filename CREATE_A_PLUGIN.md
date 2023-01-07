@@ -34,6 +34,7 @@ For the plugin system to work, we need to expose two functions:
  - one to delete the instance later
 The names for those functions can be variable, but they need to be adjusted in the call to `Plugin<T>::load`. The example works with the default names:
 ```c++
+//This function is responsible for creating a new instance of SamplePlugin
 extern "C" SamplePlugin* create_plugin(){
 	return new SamplePlugin();
 }
